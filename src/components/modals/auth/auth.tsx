@@ -4,20 +4,25 @@ import "./style.css";
 import ModalWrapper from "@/components/common/modal-wrapper";
 import { useState } from "react";
 
-export default function AuthModal() {
+export default function AuthModal({onAuthSuccess}: {onAuthSuccess: () => void}){
   const [usernameValue, setUsernameValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
 
   async function auth(mode: "login" | "signup") {
-    const res = await axios.post(`${window.url}/${mode}`, {
-      username: "test",
-      password: "test",
-    })
-    .catch(err => {
-      console.log(err)
-    })
+    const res = await axios
+      .post(`${window.url}/${mode}`, {
+        id: usernameValue,
+        password: passwordValue,
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
-    console.log(res)
+    localStorage.setItem("id", usernameValue);
+    localStorage.setItem("password", passwordValue);
+
+    console.log(res?.data);
+    onAuthSuccess()
   }
 
   return (

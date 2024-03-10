@@ -1,0 +1,4 @@
+.gradient {
+    background: linear-gradient(90deg, #fff0 0%, #fff 70%, #fff 100%);
+    @apply absolute right-0 top-0 h-7 w-20 z-0
+}

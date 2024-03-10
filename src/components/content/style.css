@@ -1,0 +1,8 @@
+.button {
+  @apply bg-black text-white rounded-lg p-1 pl-4 pr-4 m-1 flex w-fit ;
+    font-family: 'Times New Roman', Times, serif
+}
+
+.button p {
+  @apply ml-2 font-semibold text-slate-300;
+}
