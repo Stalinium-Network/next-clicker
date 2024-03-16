@@ -1,4 +1,5 @@
 "use client";
+import "./styles.css";
 import AuthModal from "@/components/modals/auth/auth";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,18 +9,24 @@ import {
   __isAuthorized__,
   currentUserData_unsafe,
   gameStatsType,
+  messageType,
   userDataType,
 } from "@/lib/store";
 import AlertToast, { toastType } from "../alert/alert";
 import Logout from "../buton/logout/logout";
+import ChatWindow from "../chat/chat";
+import { nextTick } from "process";
+
+let socket: any = null;
 
 export default function App() {
   window.url = "http://localhost:3001";
+
   const [authModalVissible, setAuthModalVissibleModal] = useState(false);
   const [leaderboard, setLeaderoard] = useState([]);
   const userData = useSelector((state: any) => state.userData);
   const dispatch = useDispatch(); // Для отправки действий
-
+  const [messages, setMessages] = useState<messageType[]>([]);
   const [toasts, setToasts] = useState<toastType[]>([]);
 
   function addToast(toast: toastType) {
@@ -36,7 +43,7 @@ export default function App() {
     setAuthModalVissibleModal(false);
 
     __isAuthorized__.value = true;
-    const socket = connect2socket();
+    connect2socket();
   }
 
   let connectTryCount = 0;
@@ -48,8 +55,34 @@ export default function App() {
     });
   };
 
+  const addMessage = (msg: messageType) => {
+    setMessages((prevMessages) => [...prevMessages, msg]);
+
+    if (need2scroll()) scroll();
+  };
+
+  function scroll() {
+    const messageArea: any = document.getElementById("message-area");
+    console.log("scroll", messageArea);
+
+    if (messageArea) {
+      // nextTick заменен на setTimeout с задержкой 0, что эквивалентно nextTick во Vue
+      setTimeout(() => {
+        messageArea.scrollTop = messageArea.scrollHeight;
+      }, 0);
+    }
+  }
+
+  function need2scroll() {
+    const messageArea: any = document.getElementById("message-area");
+    return (
+      messageArea?.scrollHeight - messageArea?.scrollTop <
+      messageArea?.clientHeight + 50
+    );
+  }
+
   function connect2socket() {
-    const socket = io("http://localhost:3001", {
+    socket = io("http://localhost:3001", {
       query: {
         id: localStorage.getItem("id") || "",
         password: localStorage.getItem("password") || "",
@@ -69,9 +102,14 @@ export default function App() {
       }
     });
 
-    socket.on("data", (data) => {
-      console.log(data.gameStats);
-      updateUserData(data);
+    socket.on("data", (data: { userInfo: any; messages: any[] }) => {
+      console.log(data);
+
+      data.userInfo.gameStats.balance = parseInt(data.userInfo.gameStats.balance);
+      
+      updateUserData(data.userInfo);
+      setMessages(data.messages);
+      
       __isAuthorized__.value = true;
       socket.emit("getLeaderboard");
     });
@@ -81,10 +119,17 @@ export default function App() {
       __isAuthorized__.value = false;
     });
 
-    socket.on("leaderboard", (data) => {
+    socket.on("leaderboard", (data: any) => {
       data = JSON.parse(data);
       console.log("leaderboard: ", data);
       setLeaderoard(data);
+    });
+
+    socket.on("message", (msg: any) => {
+      console.log(userData.messages);
+      console.log(msg);
+      addMessage(msg);
+      console.log(userData.messages);
     });
 
     return socket;
@@ -107,7 +152,7 @@ export default function App() {
       console.log(" -------- connected");
     });
 
-    const socket = connect2socket();
+    connect2socket();
 
     // auto save
     const autoSaveInterval = setInterval(() => {
@@ -118,7 +163,7 @@ export default function App() {
       console.log(unsaveData);
 
       const stats2save = {
-        balance: parseInt(unsaveData.balance.toFixed(0)),
+        balance: unsaveData.balance.toFixed(0),
         mpc: {
           cost: parseInt(unsaveData.mpc.cost.toFixed()),
           amount: parseInt(unsaveData.mpc.amount.toFixed()),
@@ -165,11 +210,12 @@ export default function App() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col justify-between md:flex-row ">
+    <main className="flex min-h-screen flex-col justify-between md:flex-row bg-line">
       <AlertToast toasts={toasts} />
       <Logout />
       {authModalVissible ? <AuthModal onAuthSuccess={onAuthSuccess} /> : ""}
       <IndexContent leaderboard={leaderboard} />
+      <ChatWindow socket={socket} messages={messages} addMessage={addMessage} />
     </main>
   );
 }

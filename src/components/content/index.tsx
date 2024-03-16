@@ -42,8 +42,8 @@ export default function IndexContent({ leaderboard }: { leaderboard: any[] }) {
   }, []);
 
   function clickHandler() {
-    const i = userData.gameStats.mpc.amount * 100_000_000_000_000;
-    console.log(i);
+    const i = userData.gameStats.mpc.amount * 1_230_000_000_000_000;
+    console.log(i.toString());
     const updatedUserData = {
       ...userData,
       gameStats: {
@@ -72,7 +72,7 @@ export default function IndexContent({ leaderboard }: { leaderboard: any[] }) {
           </div>
           <button
             onClick={clickHandler}
-            className="border h-28 w-28 rounded-full shadow-lg font-semibold text-2xl"
+            className="click-btn border h-28 w-28 rounded-full shadow-lg font-semibold text-2xl cursor-pointer text-white"
           >
             $
           </button>

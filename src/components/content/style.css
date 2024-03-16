@@ -6,3 +6,8 @@
 .button p {
   @apply ml-2 font-semibold text-slate-300;
 }
+
+.click-btn {
+  background-image: url("/logo.webp");
+  @apply bg-cover bg-no-repeat bg-center
+}

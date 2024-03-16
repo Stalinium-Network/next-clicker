@@ -5,6 +5,7 @@ export let currentUserData_unsafe: any = {}
 export const __isAuthorized__ = { value: false }
 
 const initialState = {
+    _id: "",
     userData: {
         _id: "",
         gameStats: {
@@ -29,6 +30,13 @@ export type userDataType = {
     _id: string,
     gameStats: gameStatsType
 }
+
+export type messageType = {
+    id: string,
+    text: string,
+    time: string,
+}
+
 export type gameStatsType = {
     balance: number,
     mpc: { cost: number, amount: number, value: number },
